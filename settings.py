@@ -27,6 +27,8 @@ class Settings():
         # 外星人点数的提高速度
         self.score_scale = 1.5
         self.initialize_dynamic_settings()
+
+
     def initialize_dynamic_settings(self):
         self.ship_speed_factor = 3  # 飞船的速度系数
         self.bullet_speed_factor = 3
