@@ -1,6 +1,8 @@
+import os
 import sys
 import pygame
 from pygame.sprite import Group
+from pygame.locals import *
 from settings import Settings
 from game_stats import GameStats
 from scoreboard import Scoreboard
@@ -16,20 +18,15 @@ def run_game():
     ai_settings=Settings()
     screen=pygame.display.set_mode((ai_settings.screen_width,ai_settings.screen_height))
 
-    # # 音乐的路径
-    # file = r'music\单小源-泄气的皮球.mp3'
-    # # 初始化
-    # pygame.mixer.init()
-    # # 加载音乐文件
-    # track = pygame.mixer.music.load(file)
-    # # 开始播放音乐流
-    # pygame.mixer.music.play()
-
-
+    # 加载背景音乐
+    music_base_path = os.getcwd() + "/music/"
+    pygame.mixer.music.load(music_base_path + "music.mp3")
+    # 设置音量
+    pygame.mixer.music.set_volume(0.1)
+    # 循环播放
+    pygame.mixer.music.play(-1, 0)
 
     pygame.display.set_caption("Alien Invasion")
-    #创建play按钮
-    play_button=Button(ai_settings,screen,"Play")
     #创建一个用于存储游戏统计信息的实例，并创建记分牌
     stats=GameStats(ai_settings)
     sb=Scoreboard(ai_settings,screen,stats)
@@ -44,12 +41,11 @@ def run_game():
     gf.create_fleet(ai_settings,screen,ship,aliens)
     #创建一个外星人
     alien=Alien(ai_settings,screen)
-
-
+    # 创建play按钮
+    play_button = Button(ai_settings, screen, "Play")
 
     #游戏主循环
     while True:
-
         #事件驱动：监视键盘和鼠标事件
         #循环检查所获得的所有事件
         gf.check_events(ai_settings,screen,stats,sb,play_button,ship,aliens,bullets)
