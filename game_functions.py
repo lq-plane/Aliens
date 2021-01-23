@@ -6,16 +6,47 @@ from bullet import Bullet
 from alien import Alien
 
 
-def check_keydown_events(event,ai_settings, screen, ship,bullets):
+def check_keydown_events(event,stats,aliens,ai_settings, screen, ship,bullets):
     # event.key被按下的键、pygame.K_RIGHT方向键右
     if event.key == pygame.K_RIGHT:
         ship.moving_right = True
     elif event.key == pygame.K_LEFT:
         ship.moving_left = True
+    elif event.key == pygame.K_UP:
+        ship.moving_up = True
+    elif event.key == pygame.K_DOWN:
+        ship.moving_down = True
     elif event.key == pygame.K_SPACE:
         fire_bullet(ai_settings,screen,ship,bullets)
+    elif event.key == pygame.K_p:
+        if not stats.game_active:
+            start_game(stats, aliens, bullets, ai_settings, screen, ship)
     elif event.key==pygame.K_q:
         sys.exit()
+
+
+def start_game(stats, aliens, bullets, ai_settings, screen, ship):
+    #重置游戏设置
+    ai_settings.initialize_dynamic_settings()
+    #隐藏光标
+    pygame.mouse.set_visible(False)
+    #重置游戏统计信息
+    stats.reset_stats()
+    stats.game_active=True
+
+    # # 重置记分牌图像
+    # sb.prep_score()
+    # sb.prep_high_score()
+    # sb.prep_level()
+    # sb.prep_ships()
+
+    #清空外星人列表和子弹列表
+    aliens.empty()
+    bullets.empty()
+
+    #创建一群新的外星人，并让飞船居中
+    create_fleet(ai_settings,screen,ship,aliens)
+    ship.center_ship()
 
 def fire_bullet(ai_settings, screen, ship, bullets):
         # 如果没有达到限制，就发射一颗子弹
@@ -33,7 +64,10 @@ def check_keyup_events(event, ship):
         ship.moving_right = False
     elif event.key == pygame.K_LEFT:
         ship.moving_left = False
-
+    elif event.key == pygame.K_UP:
+        ship.moving_up = False
+    elif event.key == pygame.K_DOWN:
+        ship.moving_down = False
 
 def check_events(ai_settings, screen,stats,sb,play_button, ship,aliens,bullets):#检查事件
     # 循环检查所获得的所有事件
@@ -43,7 +77,7 @@ def check_events(ai_settings, screen,stats,sb,play_button, ship,aliens,bullets):
             # 中断进程
             sys.exit()
         elif event.type==pygame.KEYDOWN:
-            check_keydown_events(event,ai_settings, screen, ship,bullets)
+            check_keydown_events(event,stats,aliens,ai_settings, screen, ship,bullets)
         elif event.type==pygame.KEYUP:
             check_keyup_events(event,ship)
         elif event.type==pygame.MOUSEBUTTONDOWN:
@@ -104,10 +138,21 @@ def update_bullets(ai_settings,screen,stats,sb,ship,aliens,bullets):
     # 删除以消失的子弹
     for bullet in bullets.copy():
         if bullet.rect.bottom <= 0:
-
             bullets.remove(bullet)
-
     check_bullet_alien_collisions(ai_settings, screen, stats, sb, ship, aliens, bullets)
+
+
+_sound_library = {}
+# 播放音效(与背景音乐可同时播放，但默认只支持wav格式)
+def play_sound(path):
+    global _sound_library
+    sound = _sound_library.get(path)
+    if sound is None:
+        temp = path.replace('/', os.sep).replace('\\', os.sep)
+        sound = pygame.mixer.Sound(temp)
+        sound.set_volume(0.1)
+        _sound_library[path] = sound
+    sound.play()
 
 def check_bullet_alien_collisions(ai_settings,screen,stats,sb,ship,aliens,bullets):
     #检查是否有子弹击中了外星人
@@ -119,8 +164,10 @@ def check_bullet_alien_collisions(ai_settings,screen,stats,sb,ship,aliens,bullet
             sb.prep_score()
             #添加子弹音效
             # pygame.mixer.init()
-            pygame.mixer.music.load("music\传奇音效素材-选择框中闪光(SelectBoxFlash)_爱给网_aigei_com.mp3")
-            pygame.mixer.music.play()
+            # pygame.mixer.music.load("music\传奇音效素材-选择框中闪光(SelectBoxFlash)_爱给网_aigei_com.mp3")
+            # pygame.mixer.music.play()
+            music_base_path = os.getcwd() + "/music/"
+            play_sound(music_base_path + "hit.wav")
         check_high_score(stats, sb)
 
     if len(aliens)==0:
